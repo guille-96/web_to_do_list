@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Tareas de Hoy{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h2 class="mb-4">Tareas de Hoy</h2>
+
+        <form method="post" action="{{ url_for('add') }}">
+            <div class="mb-2">
+                <input type="text" name="titulo" class="form-control" placeholder="Título de la tarea..." required>
+            </div>
+            <div class="mb-2">
+                <input type="text" name="descripcion" class="form-control" placeholder="Descripción de la tarea...">
+            </div>
+            <div class="input-group mb-2">
+                <input type="date" name="fecha" class="form-control" required>
+                <button type="submit" class="btn btn-primary">Añadir</button>
+            </div>
+        </form>
+
+    {% set hoy = fecha_hoy %}
+
+    <ul class="list-group mt-4">
+        {% for tarea in tareas %}
+            {% if tarea.fecha == hoy %}
+                {% set color_fondo = 'tarea-hoy' %}
+            {% elif tarea.fecha < hoy %}
+                {% set color_fondo = 'tarea-pasada' %}
+            {% endif %}
+            <li class="list-group-item {{ color_fondo }}">
+                <form method="post" action="{{ url_for('update', tarea_id=tarea.id) }}" class="d-flex align-items-center gap-2 tarea-form">
+                    <span class="tarea-view flex-grow-1">
+                        <strong>Título: {{ tarea.titulo }}</strong><br>
+                        Descripción: {{ tarea.descripcion }}<br>
+                        <small> Fecha límite: {{ tarea.fecha }}</small>
+                    </span>
+
+                    <span class="tarea-edit flex-grow-1 d-none">
+                        <input type="text" name="titulo" class="form-control form-control-sm mb-1" value="{{ tarea.titulo }}" required>
+                        <input type="text" name="descripcion" class="form-control form-control-sm mb-1" value="{{ tarea.descripcion }}">
+                        <input type="date" name="fecha" class="form-control form-control-sm" value="{{ tarea.fecha }}">
+                    </span>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-warning btn-edit">Editar</button>
+                        <button type="submit" class="btn btn-sm btn-success btn-save d-none">Guardar</button>
+                    </div>
+                </form>
+
+                <form method="post" action="{{ url_for('complete', tarea_id=tarea.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-secondary" style="background-color:#007bff; color:white;">Completar</button>
+                </form>
+            </li>
+        {% else %}
+            <li class="list-group-item text-center">No hay tareas para hoy</li>
+        {% endfor %}
+    </ul>
+
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/tareas.js') }}"></script>
+{% endblock %}

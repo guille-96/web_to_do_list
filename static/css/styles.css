@@ -1,0 +1,54 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    background-color: #e6f0ff;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: #003366;
+    color: #ffffff;
+    transition: top 0.3s;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+header a, header .nav-link {
+    color: #ffffff;
+}
+
+header .nav-link.active {
+    background-color: #0055a5;
+}
+
+main {
+    flex: 1 0 auto;
+    padding-top: 100px;
+}
+
+footer {
+    background-color: #003366;
+    color: #ffffff;
+    padding: 15px 0;
+    text-align: center;
+    flex-shrink: 0;
+}
+.tarea-hoy {
+    background-color: #fff9c4; /* amarillo pálido */
+    border-left: 5px solid #ffeb3b;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.tarea-pasada {
+    background-color: #ffcdd2; /* rojo suave */
+    border-left: 5px solid #f44336;
+    border-radius: 5px;
+    padding: 10px;
+}

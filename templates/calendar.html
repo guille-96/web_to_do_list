@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Calendario de Tareas{% endblock %}
+{% block content %}
+
+<meta charset="utf-8">
+<div class="row">
+    <div class="col-md-12">
+        <h2>Calendario de Tareas</h2>
+        <div class="mb-3">
+            {% if view_mode == 'day' %}
+                <h5>Mostrando tareas del: {{ fecha_actual.strftime('%A, %d de %B de %Y') }}</h5>
+            {% elif view_mode == 'week' %}
+                <h5>Semana del {{ fecha_inicio.strftime('%d/%m/%Y') }} al {{ fecha_fin.strftime('%d/%m/%Y') }}</h5>
+            {% elif view_mode == 'month' %}
+                <h5>Mes de {{ fecha_actual.strftime('%B de %Y') }}</h5>
+            {% endif %}
+        </div>
+
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <div>
+                {% if view_mode == 'day' %}
+                    <a href="{{ url_for('calendar_view', view='day', date=(fecha_actual - timedelta(days=1)).strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-primary">&laquo; Día anterior</a>
+                    <a href="{{ url_for('calendar_view', view='day', date=(fecha_actual + timedelta(days=1)).strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-primary">Siguiente día &raquo;</a>
+                {% elif view_mode == 'week' %}
+                    <a href="{{ url_for('calendar_view', view='week', date=(fecha_actual - timedelta(days=7)).strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-primary">&laquo; Semana anterior</a>
+                    <a href="{{ url_for('calendar_view', view='week', date=(fecha_actual + timedelta(days=7)).strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-primary">Siguiente semana &raquo;</a>
+                {% elif view_mode == 'month' %}
+                    {% set anterior = fecha_actual.replace(day=1) - timedelta(days=1) %}
+                    {% set siguiente = fecha_actual.replace(day=28) + timedelta(days=4) %} {# Va al mes siguiente automáticamente #}
+                    {% set siguiente = siguiente.replace(day=1) %}
+                    <a href="{{ url_for('calendar_view', view='month', date=anterior.strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-primary">&laquo; Mes anterior</a>
+                    <a href="{{ url_for('calendar_view', view='month', date=siguiente.strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-primary">Siguiente mes &raquo;</a>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{{ url_for('calendar_view', view='day', date=fecha_actual) }}" class="btn btn-sm btn-primary {% if view_mode=='day' %}active{% endif %}">Día</a>
+                <a href="{{ url_for('calendar_view', view='week', date=fecha_actual) }}" class="btn btn-sm btn-primary {% if view_mode=='week' %}active{% endif %}">Semana</a>
+                <a href="{{ url_for('calendar_view', view='month', date=fecha_actual) }}" class="btn btn-sm btn-primary {% if view_mode=='month' %}active{% endif %}">Mes</a>
+            </div>
+        </div>
+
+
+        {% if view_mode == 'week' %}
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                {% set dias_semana = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}
+                                {% for i in range(7) %}
+                                    {% set dia_index = (fecha_inicio + timedelta(days=i)).weekday() %}
+                                    <th>{{ dias_semana[dia_index] }} {{ (fecha_inicio + timedelta(days=i)).day }}/{{ (fecha_inicio + timedelta(days=i)).month }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            {% for i in range(7) %}
+                                {% set dia = fecha_inicio + timedelta(days=i) %}
+                                <td style="min-height:100px;">
+                                    <a href="{{ url_for('calendar_view', view='day', date=dia) }}" class="text-decoration-none text-dark d-block">
+                                        {% for tarea in tareas if tarea.fecha == dia %}
+                                            <div class="badge bg-primary mb-1 w-100 text-start">{{ tarea.titulo }}</div>
+                                        {% endfor %}
+                                    </a>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% elif view_mode == 'month' %}
+            {% set first_day = fecha_inicio %}
+            {% set start_weekday = first_day.weekday() %}
+            {% set total_days = (fecha_fin - fecha_inicio).days + 1 %}
+            {% set total_cells = ((start_weekday + total_days + 6)//7)*7 %}
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-top">
+                    <thead class="table-light">
+                        <tr>
+                            {% for dia in ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}
+                                <th>{{ dia }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for week in range(total_cells // 7) %}
+                        <tr>
+                            {% for day in range(7) %}
+                                {% set cell_index = week*7 + day %}
+                                {% set current_day = fecha_inicio + timedelta(days=cell_index - start_weekday) %}
+                                {% if cell_index >= start_weekday and current_day <= fecha_fin %}
+                        <td style="min-height:80px;">
+                            <a href="{{ url_for('calendar_view', view='day', date=current_day) }}" class="text-decoration-none text-dark d-block">
+                                <strong>{{ current_day.day }}</strong>
+                                {% for tarea in tareas if tarea.fecha == current_day %}
+                                    <div class="badge bg-primary mb-1 w-100 text-start">{{ tarea.titulo }}</div>
+                                {% endfor %}
+                            </a>
+                        </td>
+
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <ul class="list-group">
+                {% for tarea in tareas %}
+                    <li class="list-group-item">
+                        <strong>{{ tarea.titulo }}</strong><br>
+                        {{ tarea.descripcion }}<br>
+                        <small>{{ tarea.fecha }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
